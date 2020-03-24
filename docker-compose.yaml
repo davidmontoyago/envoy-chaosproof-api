@@ -1,0 +1,12 @@
+version: '3'
+services:
+  api:
+    image: "hello-api:alpha"
+    ports:
+      - "9000"
+  envoy-proxy:
+    image: "envoyproxy/envoy:v1.13.1"
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy-static-bootstrap.yaml:/etc/envoy/envoy.yaml
