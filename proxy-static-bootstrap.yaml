@@ -38,8 +38,31 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: api
+                address: api-1
                 port_value: 9000
+        - endpoint:
+            address:
+              socket_address:
+                address: api-2
+                port_value: 9000
+        - endpoint:
+            address:
+              socket_address:
+                address: api-3
+                port_value: 9000
+    # ########################## health checking ##########################
+    health_checks:
+      - http_health_check:
+          path: /health
+        always_log_health_check_failures: true
+        event_log_path: /dev/stdout
+        interval: 3s
+        interval_jitter: 0.1s
+        timeout: 1s
+        healthy_threshold: 1
+        unhealthy_threshold: 2
+        unhealthy_interval: 10s
+        no_traffic_interval: 30s
   # - name: load_reporting_cluster
   #   connect_timeout: 0.25s
   #   type: strict_dns

@@ -2,15 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
-	"github.com/davidmontoyago/go-event-ingestor-api/pkg/log"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/health", health).Methods("GET")
 	router.HandleFunc("/hello", hello).Methods("GET")
 
 	srv := &http.Server{
@@ -20,9 +22,23 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 	}
 
-	log.Error.Fatal(srv.ListenAndServe())
+	log.Fatal(srv.ListenAndServe())
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]string{"ok": "true", "hello": "World"})
+	log.Println("headers:")
+	for name, values := range r.Header {
+		for _, value := range values {
+			fmt.Println(name, value)
+		}
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{"ok": true, "hello": "World"})
+}
+
+func health(w http.ResponseWriter, r *http.Request) {
+
+	// check dependencies...
+
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }

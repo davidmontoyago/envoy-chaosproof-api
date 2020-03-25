@@ -1,6 +1,14 @@
 version: '3'
 services:
-  api:
+  api-1:
+    image: "hello-api:alpha"
+    ports:
+      - "9000"
+  api-2:
+    image: "hello-api:alpha"
+    ports:
+      - "9000"
+  api-3:
     image: "hello-api:alpha"
     ports:
       - "9000"
