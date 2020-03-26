@@ -22,19 +22,20 @@ static_resources:
               - match:
                   prefix: "/"
                 route:
-                  cluster: api_service
+                  cluster: aggregate_cluster
           http_filters:
           - name: envoy.router
             typed_config: {}
   clusters:
-  - name: api_service
+  - name: api_service_primary
     connect_timeout: 0.25s
     type: STRICT_DNS
     lb_policy: ROUND_ROBIN
     load_assignment:
-      cluster_name: api_service
+      cluster_name: api_service_primary
       endpoints:
-      - lb_endpoints:
+      - priority: 0
+        lb_endpoints:
         - endpoint:
             address:
               socket_address:
@@ -50,19 +51,68 @@ static_resources:
               socket_address:
                 address: api-3
                 port_value: 9000
-    # ########################## health checking ##########################
+    # ########################## primary cluster - health checking ##########################
     health_checks:
       - http_health_check:
           path: /health
         always_log_health_check_failures: true
         event_log_path: /dev/stdout
-        interval: 3s
+        interval: 1s
+        interval_jitter: 0.01s
+        timeout: 0.2s
+        healthy_threshold: 1
+        unhealthy_threshold: 2
+        unhealthy_interval: 10s
+        no_traffic_interval: 30s
+  - name: api_service_fallback
+    connect_timeout: 0.25s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: api_service_fallback
+      endpoints:
+      - priority: 0
+        lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: api-4
+                port_value: 9000
+        - endpoint:
+            address:
+              socket_address:
+                address: api-5
+                port_value: 9000
+      - priority: 1
+        lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: api-6
+                port_value: 9000
+    # ########################## fallback cluster (slower) - health checking ##########################
+    health_checks:
+      - http_health_check:
+          path: /health
+        always_log_health_check_failures: true
+        event_log_path: /dev/stdout
+        interval: 5s
         interval_jitter: 0.1s
         timeout: 1s
         healthy_threshold: 1
         unhealthy_threshold: 2
         unhealthy_interval: 10s
         no_traffic_interval: 30s
+  - name: aggregate_cluster
+    connect_timeout: 0.25s
+    lb_policy: CLUSTER_PROVIDED
+    cluster_type:
+      name: envoy.clusters.aggregate
+      typed_config:
+        "@type": type.googleapis.com/envoy.config.cluster.aggregate.v2alpha.ClusterConfig
+        clusters:
+        - api_service_primary
+        - api_service_fallback
   # - name: load_reporting_cluster
   #   connect_timeout: 0.25s
   #   type: strict_dns
