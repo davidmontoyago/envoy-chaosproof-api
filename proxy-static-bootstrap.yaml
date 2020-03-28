@@ -21,7 +21,9 @@ static_resources:
               retry_policy:
                 retry_on: "5xx"
                 num_retries: 3
-                per_try_timeout: 1s
+                per_try_timeout: 2s
+              hedge_policy:
+                hedge_on_per_try_timeout: true
               routes:
                 - match:
                     prefix: "/"
@@ -35,10 +37,19 @@ static_resources:
           - name: envoy.health_check
             config:
               pass_through_mode: true
-              cache_time: 5s
+              cache_time: 10s
               headers:
               - name: ":path"
                 exact_match: "/health"
+          - name: envoy.lua
+            config:
+              inline_code: |
+                function envoy_on_response(response_handle)
+                  headers = response_handle:headers()
+                  if headers:get("x-envoy-overloaded") ~= nil then
+                    response_handle:logDebug("circuit breakers off")
+                  end
+                end
           - name: envoy.router
             typed_config: {}
   clusters:
