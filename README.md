@@ -10,7 +10,8 @@ docker-compose up
 
 ## TODO
 
-- Fallbacks? https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/http_routing#direct-responses
-- Buffering
+- Load test
+- Add upstream auth layer / Lua script or JWT auth filter
+- Synthetic testing / Check for testing user identity / Add headers / Lua script
 - Add a canary subset https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/subsets
 - TLS termination
