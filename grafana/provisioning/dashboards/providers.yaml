@@ -4,9 +4,9 @@ providers:
 - name: 'json-dashboards'
   folder: ''
   type: file
-  disableDeletion: true
-  editable: false
+  disableDeletion: false
+  editable: true
   updateIntervalSeconds: 60
-  allowUiUpdates: false
+  allowUiUpdates: true
   options:
     path: /usr/share/grafana/dashboards

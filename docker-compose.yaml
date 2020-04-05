@@ -32,18 +32,25 @@ services:
     volumes:
       - ./proxy-static-bootstrap.yaml:/etc/envoy/envoy.yaml
   prometheus:
+    depends_on:
+      - envoy-proxy
     image: "prom/prometheus"
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    restart: unless-stopped
   grafana:
+    depends_on:
+      - prometheus
     image: grafana/grafana
     ports:
       - "3000:3000"
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./grafana/envoy-datasource.yaml:/etc/grafana/provisioning/datasources/envoy.yaml
-      - ./grafana/dashboard-providers.yaml:/etc/grafana/provisioning/dashboards/providers.yaml
-      - ./grafana/envoy-clusters-dashboard.json:/usr/share/grafana/dashboards/envoy-clusters.json
-      - ./grafana/envoy-global-dashboard.json:/usr/share/grafana/dashboards/envoy-global.json
+      - ./grafana/provisioning/datasources/envoy-datasource.yaml:/etc/grafana/provisioning/datasources/envoy.yaml
+      - ./grafana/provisioning/dashboards/providers.yaml:/etc/grafana/provisioning/dashboards/providers.yaml
+      - ./grafana/provisioning/dashboards/envoy-clusters.json:/usr/share/grafana/dashboards/envoy-clusters.json
+      - ./grafana/provisioning/dashboards/envoy-global.json:/usr/share/grafana/dashboards/envoy-global.json
